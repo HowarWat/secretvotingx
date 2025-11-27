@@ -21,10 +21,27 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 
 // Check if hardhat directory exists
 if (!fs.existsSync(HARDHAT_PATH)) {
-  console.error(
+  console.warn(
     `${line}Unable to locate ${HARDHAT_PATH}${line}`
   );
-  process.exit(1);
+  console.log("Checking if ABI files already exist...");
+  
+  // Check if all required ABI files exist
+  const allAbiFilesExist = CONTRACTS.every((contractName) => {
+    const abiFile = path.join(OUTPUT_DIR, `${contractName}ABI.ts`);
+    const addressesFile = path.join(OUTPUT_DIR, `${contractName}Addresses.ts`);
+    return fs.existsSync(abiFile) && fs.existsSync(addressesFile);
+  });
+  
+  if (allAbiFilesExist) {
+    console.log("✅ All ABI files already exist. Skipping generation.");
+    process.exit(0);
+  } else {
+    console.error(
+      `${line}ABI files are missing and hardhat directory is not available.${line}`
+    );
+    process.exit(1);
+  }
 }
 
 function deployOnHardhatNode() {
